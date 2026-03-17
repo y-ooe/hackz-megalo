@@ -26,6 +26,7 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const githubAuth = params.get('githubAuth')
+    const amazonAuth = params.get('amazonAuth')
     const pendingStep = sessionStorage.getItem('oauth_pending_step')
 
     if (githubAuth === 'success' && pendingStep === 'github') {
@@ -38,8 +39,19 @@ function App() {
       setStage((prev) => (prev < 2 ? 2 : prev))
     }
 
-    if (githubAuth) {
+    if (amazonAuth === 'success' && pendingStep === 'amazon') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 4 ? 4 : prev))
+    }
+
+    if (amazonAuth === 'failed' && pendingStep === 'amazon') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 3 ? 3 : prev))
+    }
+
+    if (githubAuth || amazonAuth) {
       params.delete('githubAuth')
+      params.delete('amazonAuth')
       const nextQuery = params.toString()
       const cleanUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`
       window.history.replaceState({}, '', cleanUrl)

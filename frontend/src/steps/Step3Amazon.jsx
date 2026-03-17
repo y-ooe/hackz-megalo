@@ -1,23 +1,19 @@
 import { useState } from 'react'
 import { LoaderCircle, LockKeyhole } from 'lucide-react'
-import { startAmazonAuth } from '../api'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 function Step3Amazon({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleAuth = async () => {
+  const handleAuth = () => {
     setIsLoading(true)
     setError('')
 
-    try {
-      await startAmazonAuth()
-      onSuccess()
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Amazon認証に失敗しました。')
-    } finally {
-      setIsLoading(false)
-    }
+    // OAuth遷移後に戻ってきたことを判定するための一時フラグ
+    sessionStorage.setItem('oauth_pending_step', 'amazon')
+    window.location.href = `${API_BASE_URL}/auth/amazon/login`
   }
 
   return (
@@ -27,7 +23,7 @@ function Step3Amazon({ onSuccess }) {
         <h2 className="text-xl font-semibold">Step 3: Amazon Cognito Auth</h2>
       </div>
 
-      <p className="text-sm text-slate-300">Hosted UI / SDK連携を想定したAmazon認証フローに接続します。</p>
+      <p className="text-sm text-slate-300">バックエンドの /auth/amazon/login 経由でCognito認証画面に遷移します。</p>
 
       <button
         type="button"

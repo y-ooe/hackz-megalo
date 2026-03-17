@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import { generators } from 'openid-client';
-
+import { ENV_CONFIG } from '../../../config/env.js';
 import { getAmazonClient } from './amazon.client.js';
 
-const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
-const AMAZON_CALLBACK_URL = process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
-const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID ?? '';
-const COGNITO_DOMAIN = process.env.COGNITO_DOMAIN ?? '';
+const frontendUrl = ENV_CONFIG.FRONTEND_URL;
+const AMAZON_CALLBACK_URL = ENV_CONFIG.AMAZON_CALLBACK_URL;
+const AMAZON_CLIENT_ID = ENV_CONFIG.AMAZON_CLIENT_ID;
+const COGNITO_DOMAIN = ENV_CONFIG.COGNITO_DOMAIN;
 
 
 // ログイン
@@ -75,7 +75,7 @@ export const callbackHandler = async (req: Request, res: Response): Promise<void
 // ログアウト
 export const logoutHandler = (req: Request, res: Response): void => {
   req.session.destroy(() => {
-    const logoutUri = process.env.AMAZON_LOGOUT_URI ?? frontendUrl;
+    const logoutUri = ENV_CONFIG.AMAZON_LOGOUT_URI ?? frontendUrl;
     const logoutUrl = `${COGNITO_DOMAIN}/logout?client_id=${AMAZON_CLIENT_ID}&logout_uri=${encodeURIComponent(logoutUri)}`;
     res.redirect(logoutUrl);
   });

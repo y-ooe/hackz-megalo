@@ -4,6 +4,8 @@ const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 
 export const githubSuccessHandler = (req: Request, res: Response) => {
   if (req.user) {
+
+    
     res.redirect(`${frontendUrl}/?githubAuth=success`);
     return;
   }

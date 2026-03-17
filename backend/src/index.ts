@@ -1,12 +1,11 @@
-import express from 'express';
-import type { Express, Request, Response } from 'express';
+import dotenv from 'dotenv';
 
-const app = express();
-const port = 3000;
+import { createApp } from './app.js';
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to TypeScript!');
-});
+dotenv.config();
+
+const app = createApp();
+const port = Number(process.env.PORT ?? 3000);
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

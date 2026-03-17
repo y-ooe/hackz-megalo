@@ -1,0 +1,76 @@
+import type { Request, Response } from 'express';
+import { generators } from 'openid-client';
+
+import { getAmazonClient } from './amazon.client.js';
+
+const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+const AMAZON_CALLBACK_URL =
+  process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
+const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID ?? '';
+const COGNITO_DOMAIN = process.env.COGNITO_DOMAIN ?? '';
+
+
+// ログイン
+export const loginHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const client = await getAmazonClient();
+    const nonce = generators.nonce();
+    const state = generators.state();
+
+    req.session.nonce = nonce;
+    req.session.state = state;
+
+    const authUrl = client.authorizationUrl({
+      scope: 'email openid profile',
+      state,
+      nonce,
+    });
+
+    res.redirect(authUrl);
+  } catch (err) {
+    console.error('Amazon login error:', err);
+    res.redirect(`${frontendUrl}/?amazonAuth=failed`);
+  }
+};
+
+
+// コールバック
+export const callbackHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const client = await getAmazonClient();
+    const params = client.callbackParams(req);
+    const nonce = req.session.nonce;
+    const state = req.session.state;
+
+    if (!nonce || !state) {
+      throw new Error('Missing nonce/state in session.');
+    }
+
+    const tokenSet = await client.callback(AMAZON_CALLBACK_URL, params, {
+      nonce,
+      state,
+    });
+
+    const accessToken = tokenSet.access_token;
+    if (!accessToken) {
+      throw new Error('No access token received from Cognito.');
+    }
+
+    const userInfo = await client.userinfo(accessToken);
+    req.session.userInfo = userInfo;
+
+    res.redirect(`${frontendUrl}/?amazonAuth=success`);
+  } catch (err) {
+    console.error('Amazon callback error:', err);
+    res.redirect(`${frontendUrl}/?amazonAuth=failed`);
+  }
+};
+
+// ログアウト
+export const logoutHandler = (req: Request, res: Response): void => {
+  req.session.destroy(() => {
+    const logoutUri = process.env.AMAZON_LOGOUT_URI ?? frontendUrl;
+    const logoutUrl = `${COGNITO_DOMAIN}/logout?client_id=${AMAZON_CLIENT_ID}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    res.redirect(logoutUrl);
+  });
+};

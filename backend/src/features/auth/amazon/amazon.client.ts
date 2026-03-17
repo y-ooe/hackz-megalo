@@ -1,11 +1,9 @@
 import { Issuer, type BaseClient } from 'openid-client';
 
-const COGNITO_ISSUER =
-  process.env.COGNITO_ISSUER ?? '';
+const COGNITO_ISSUER = process.env.COGNITO_ISSUER ?? '';
 const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID ?? '';
 const AMAZON_CLIENT_SECRET = process.env.AMAZON_CLIENT_SECRET ?? '';
-const AMAZON_CALLBACK_URL =
-  process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
+const AMAZON_CALLBACK_URL = process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
 
 let clientInstance: BaseClient | null = null;
 

@@ -4,15 +4,14 @@ import { generators } from 'openid-client';
 import { getAmazonClient } from './amazon.client.js';
 
 const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
-const AMAZON_CALLBACK_URL =
-  process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
+const AMAZON_CALLBACK_URL = process.env.AMAZON_CALLBACK_URL ?? 'http://localhost:3000/auth/amazon/callback';
 const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID ?? '';
 const COGNITO_DOMAIN = process.env.COGNITO_DOMAIN ?? '';
 
 
 // ログイン
 export const loginHandler = async (req: Request, res: Response): Promise<void> => {
-  try {
+try {
     const client = await getAmazonClient();
     const nonce = generators.nonce();
     const state = generators.state();
@@ -20,17 +19,24 @@ export const loginHandler = async (req: Request, res: Response): Promise<void> =
     req.session.nonce = nonce;
     req.session.state = state;
 
-    const authUrl = client.authorizationUrl({
-      scope: 'email openid profile',
-      state,
-      nonce,
-    });
+    // セッションを手動で保存してからリダイレクトする
+    req.session.save((err) => {
+        if (err) throw err;
+        
+        const authUrl = client.authorizationUrl({
+        scope: 'email openid profile',
+        state: state,
+        nonce: nonce,
+        });
 
-    res.redirect(authUrl);
-  } catch (err) {
-    console.error('Amazon login error:', err);
-    res.redirect(`${frontendUrl}/?amazonAuth=failed`);
-  }
+        // console.log('Redirecting to Cognito/Amazon:', authUrl);
+        // console.log('callback URL:', AMAZON_CALLBACK_URL);
+        res.redirect(authUrl);
+    });
+    } catch (err) {
+        console.error('Amazon login error:', err);
+        res.redirect(`${frontendUrl}/?amazonAuth=failed`);
+    }
 };
 
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Shield, TerminalSquare } from 'lucide-react'
 import Step1OTP from './steps/Step1OTP'
@@ -22,6 +22,29 @@ const stepComponents = [Step1OTP, Step2GitHub, Step3Amazon, Step4Google, Step5Fa
 function App() {
   const [stage, setStage] = useState(1)
   const [isComplete, setIsComplete] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const githubAuth = params.get('githubAuth')
+    const pendingStep = sessionStorage.getItem('oauth_pending_step')
+
+    if (githubAuth === 'success' && pendingStep === 'github') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 3 ? 3 : prev))
+    }
+
+    if (githubAuth === 'failed' && pendingStep === 'github') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 2 ? 2 : prev))
+    }
+
+    if (githubAuth) {
+      params.delete('githubAuth')
+      const nextQuery = params.toString()
+      const cleanUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`
+      window.history.replaceState({}, '', cleanUrl)
+    }
+  }, [])
 
   const completedCount = isComplete ? TOTAL_STAGES : stage - 1
   const progressPercent = (completedCount / TOTAL_STAGES) * 100

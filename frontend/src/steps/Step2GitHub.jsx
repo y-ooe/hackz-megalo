@@ -1,23 +1,19 @@
 import { useState } from 'react'
 import { Github, LoaderCircle, ShieldCheck } from 'lucide-react'
-import { startGitHubAuth } from '../api'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 function Step2GitHub({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleAuth = async () => {
+  const handleAuth = () => {
     setIsLoading(true)
     setError('')
 
-    try {
-      await startGitHubAuth()
-      onSuccess()
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'GitHub認証に失敗しました。')
-    } finally {
-      setIsLoading(false)
-    }
+    // OAuth遷移後に戻ってきたことを判定するための一時フラグ
+    sessionStorage.setItem('oauth_pending_step', 'github')
+    window.location.href = `${API_BASE_URL}/auth/github`
   }
 
   return (

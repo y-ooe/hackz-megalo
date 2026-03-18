@@ -1,16 +1,19 @@
 import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import dotenv from 'dotenv';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { ENV_CONFIG } from './env.js';
 import type { Profile } from 'passport';
 
 type StrategyDone = (error: Error | null, user?: Profile | false) => void;
 
-dotenv.config();
+const GITHUB_CLIENT_ID = ENV_CONFIG.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = ENV_CONFIG.GITHUB_CLIENT_SECRET;
+const API_BASE_URL = ENV_CONFIG.API_BASE_URL;
+const CALLBACK_URL = ENV_CONFIG.GITHUB_CALLBACK_URL;
 
-const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || '';
-const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const CALLBACK_URL = process.env.GITHUB_CALLBACK_URL || `${API_BASE_URL}/auth/github/callback`;
+const GOOGLE_CLIENT_ID = ENV_CONFIG.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = ENV_CONFIG.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CALLBACK_URL = ENV_CONFIG.GOOGLE_CALLBACK_URL;
 
 passport.use(new GitHubStrategy({
     clientID: GITHUB_CLIENT_ID,
@@ -23,13 +26,28 @@ passport.use(new GitHubStrategy({
     }
 ));
 
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: GOOGLE_CALLBACK_URL,
+    passReqToCallback: true
+},
+    function (request: any, accessToken: string, refreshToken: string, profile: Profile, done: StrategyDone) {
+        // User.findOrCreate({ googleId: profile.id }, function (err, user) {
+        //     return done(err, user);
+        // });
+        return done(null, profile);
+    }
+));
+
+
 // ユーザー情報をセッションに保存するルール（今回は情報をまるごと保存）
-passport.serializeUser((user: any, done) => {
+passport.serializeUser((user: any, done: (err: Error | null, user?: any) => void) => {
     done(null, user);
 });
 
 // セッションからユーザー情報を取り出すルール
-passport.deserializeUser((obj: any, done) => {
+passport.deserializeUser((obj: any, done: (err: Error | null, user?: any) => void) => {
     done(null, obj);
 });
 

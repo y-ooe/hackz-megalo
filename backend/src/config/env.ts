@@ -18,4 +18,9 @@ export const ENV_CONFIG = {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL ?? `${process.env.API_BASE_URL ?? 'http://localhost:3000'}/auth/google/callback`,
+    S3_BUCKET_NAME: process.env.S3_BUCKET_NAME ?? '',
+    AWS_REGION: process.env.AWS_REGION ?? 'us-east-1',
+    FACE_AUTH_ENDPOINT: process.env.FACE_AUTH_ENDPOINT ?? '',
+    NEXMO_API_KEY: process.env.NEXMO_API_KEY ?? '',
+    NEXMO_API_SECRET: process.env.NEXMO_API_SECRET ?? '',
 }

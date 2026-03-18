@@ -28,6 +28,8 @@ function App() {
     const githubAuth = params.get('githubAuth')
     const amazonAuth = params.get('amazonAuth')
     const pendingStep = sessionStorage.getItem('oauth_pending_step')
+    const googleAuth = params.get('googleAuth')
+
 
     if (githubAuth === 'success' && pendingStep === 'github') {
       sessionStorage.removeItem('oauth_pending_step')
@@ -49,13 +51,25 @@ function App() {
       setStage((prev) => (prev < 3 ? 3 : prev))
     }
 
-    if (githubAuth || amazonAuth) {
+    if (googleAuth === 'success' && pendingStep === 'google') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 5 ? 5 : prev))
+    }
+
+    if (googleAuth === 'failed' && pendingStep === 'google') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 4 ? 4 : prev))
+    }
+
+    if (githubAuth || amazonAuth || googleAuth) {
       params.delete('githubAuth')
       params.delete('amazonAuth')
+      params.delete('googleAuth')
       const nextQuery = params.toString()
       const cleanUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`
       window.history.replaceState({}, '', cleanUrl)
     }
+
   }, [])
 
   const completedCount = isComplete ? TOTAL_STAGES : stage - 1

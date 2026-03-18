@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LoaderCircle, ScanFace } from 'lucide-react'
-import { startGoogleAuth } from '../api'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 function GoogleMark() {
   return (
@@ -15,22 +16,15 @@ function GoogleMark() {
   )
 }
 
-function Step4Google({ onSuccess }) {
+function Step4Google() {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error] = useState('')
 
-  const handleAuth = async () => {
+  const handleAuth = () => {
     setIsLoading(true)
-    setError('')
-
-    try {
-      await startGoogleAuth()
-      onSuccess()
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Google認証に失敗しました。')
-    } finally {
-      setIsLoading(false)
-    }
+    // OAuth遷移後に戻ってきたことを判定するための一時フラグ
+    sessionStorage.setItem('oauth_pending_step', 'google')
+    window.location.href = `${API_BASE_URL}/auth/google`
   }
 
   return (
@@ -40,7 +34,7 @@ function Step4Google({ onSuccess }) {
         <h2 className="text-xl font-semibold">Step 4: Google Auth</h2>
       </div>
 
-      <p className="text-sm text-slate-300">Googleアカウント連携で、最終バイオメトリクス認証へのアクセス権を取得します。</p>
+      <p className="text-sm text-slate-300">バックエンドの /auth/google 経由でGoogle認証画面に遷移します。</p>
 
       <button
         type="button"

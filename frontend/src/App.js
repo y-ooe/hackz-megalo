@@ -6,6 +6,7 @@ import Step2GitHub from './steps/Step2GitHub'
 import Step3Amazon from './steps/Step3Amazon'
 import Step4Google from './steps/Step4Google'
 import Step5FaceID from './steps/Step5FaceID'
+import Success from './steps/Success'
 
 const TOTAL_STAGES = 5
 
@@ -20,13 +21,16 @@ const stageMeta = [
 const stepComponents = [Step1OTP, Step2GitHub, Step3Amazon, Step4Google, Step5FaceID]
 
 function App() {
-  const [stage, setStage] = useState(1)
+  const [stage, setStage] = useState(2)
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const githubAuth = params.get('githubAuth')
+    const amazonAuth = params.get('amazonAuth')
     const pendingStep = sessionStorage.getItem('oauth_pending_step')
+    const googleAuth = params.get('googleAuth')
+
 
     if (githubAuth === 'success' && pendingStep === 'github') {
       sessionStorage.removeItem('oauth_pending_step')
@@ -38,12 +42,35 @@ function App() {
       setStage((prev) => (prev < 2 ? 2 : prev))
     }
 
-    if (githubAuth) {
+    if (amazonAuth === 'success' && pendingStep === 'amazon') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 4 ? 4 : prev))
+    }
+
+    if (amazonAuth === 'failed' && pendingStep === 'amazon') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 3 ? 3 : prev))
+    }
+
+    if (googleAuth === 'success' && pendingStep === 'google') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 5 ? 5 : prev))
+    }
+
+    if (googleAuth === 'failed' && pendingStep === 'google') {
+      sessionStorage.removeItem('oauth_pending_step')
+      setStage((prev) => (prev < 4 ? 4 : prev))
+    }
+
+    if (githubAuth || amazonAuth || googleAuth) {
       params.delete('githubAuth')
+      params.delete('amazonAuth')
+      params.delete('googleAuth')
       const nextQuery = params.toString()
       const cleanUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`
       window.history.replaceState({}, '', cleanUrl)
     }
+
   }, [])
 
   const completedCount = isComplete ? TOTAL_STAGES : stage - 1
@@ -58,7 +85,7 @@ function App() {
   }
 
   const resetChallenge = () => {
-    setStage(1)
+    setStage(3)
     setIsComplete(false)
   }
 
@@ -122,18 +149,7 @@ function App() {
         </header>
 
         {isComplete ? (
-          <section className="rounded-2xl border border-emerald-400/30 bg-slate-950/70 p-8 text-center shadow-[0_0_40px_rgba(16,185,129,0.15)]">
-            <p className="text-4xl">✅</p>
-            <h2 className="mt-3 text-2xl font-bold text-emerald-300">All Authentication Layers Bypassed</h2>
-            <p className="mt-2 text-sm text-slate-300">Final clearance granted. You have completed The Ultimate Auth Challenge.</p>
-            <button
-              type="button"
-              onClick={resetChallenge}
-              className="mt-6 rounded-lg border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
-            >
-              チャレンジをリスタート
-            </button>
-          </section>
+          <Success onReset={resetChallenge} />
         ) : (
           <AnimatePresence mode="wait">
             <motion.section

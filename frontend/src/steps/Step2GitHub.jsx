@@ -1,20 +1,39 @@
-import { useState } from 'react'
-import { Github, LoaderCircle, ShieldCheck } from 'lucide-react'
+import { useState, useRef, useEffect } from "react"; // useEffectをここに追加
+import { Github, LoaderCircle, ShieldCheck } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 function Step2GitHub({ onSuccess }) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleAuth = () => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError("");
+    sessionStorage.setItem("oauth_pending_step", "github");
+    window.location.href = `${API_BASE_URL}/auth/github`;
+  };
 
-    // OAuth遷移後に戻ってきたことを判定するための一時フラグ
-    sessionStorage.setItem('oauth_pending_step', 'github')
-    window.location.href = `${API_BASE_URL}/auth/github`
-  }
+  // 1. コンポーネントの内部でRefを定義する
+  const audioRef = useRef(null);
+
+  // 2. コンポーネントの内部でキー入力を監視する
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.altKey && (e.key === "l" || e.key === "L")) {
+        if (audioRef.current) {
+          audioRef.current
+            .play()
+            .catch((err) =>
+              console.log("再生失敗（ユーザー操作が必要です）:", err),
+            );
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="space-y-6 rounded-2xl border border-emerald-400/30 bg-slate-950/65 p-6 shadow-[0_0_32px_rgba(16,185,129,0.18)] backdrop-blur">
@@ -23,7 +42,12 @@ function Step2GitHub({ onSuccess }) {
         <h2 className="text-xl font-semibold">Step 2: GitHub Auth</h2>
       </div>
 
-      <p className="text-sm text-slate-300">バックエンドのGitHub OAuthゲートへ接続し、トークン認証を完了させます。</p>
+      {/* 3. audioタグをここに配置 */}
+      <audio ref={audioRef} src="/Morning.mp3" loop preload="auto" />
+
+      <p className="text-sm text-slate-300">
+        バックエンドのGitHub OAuthゲートへ接続し、トークン認証を完了させます。
+      </p>
 
       <button
         type="button"
@@ -31,14 +55,18 @@ function Step2GitHub({ onSuccess }) {
         disabled={isLoading}
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-400/50 bg-black/40 px-4 py-3 font-semibold text-emerald-200 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Github className="h-4 w-4" />}
-        {isLoading ? 'GitHubに接続中...' : 'GitHubで認証'}
+        {isLoading ? (
+          <LoaderCircle className="h-4 w-4 animate-spin" />
+        ) : (
+          <Github className="h-4 w-4" />
+        )}
+        {isLoading ? "GitHubに接続中..." : "GitHubで認証"}
       </button>
 
       {error && <p className="text-sm text-rose-400">{error}</p>}
       <p className="text-xs text-slate-400">認証先: /auth/github</p>
     </div>
-  )
+  );
 }
 
-export default Step2GitHub
+export default Step2GitHub;

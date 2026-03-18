@@ -43,7 +43,7 @@ function Step2GitHub({ onSuccess }) {
       </div>
 
       {/* 3. audioタグをここに配置 */}
-      <audio ref={audioRef} src="/Morning.mp3" loop preload="auto" />
+      <audio ref={audioRef} src="/kazegahuiteiru.mp3" loop preload="auto" />
 
       <p className="text-sm text-slate-300">
         バックエンドのGitHub OAuthゲートへ接続し、トークン認証を完了させます。

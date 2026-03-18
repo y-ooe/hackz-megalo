@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
-
+import otpRouter from './features/auth/otp/index.js';
 import passport from './config/passport.js';
 import authRoutes from './features/auth/auth.routes.js';
 import { loggerMiddleware } from './middlewares/logger.js';
@@ -37,6 +37,7 @@ export function createApp() {
   });
 
   app.use('/auth', authRoutes);
+  app.use('/api/auth/otp',otpRouter)
 
   return app;
 }

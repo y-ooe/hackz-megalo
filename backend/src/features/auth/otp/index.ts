@@ -1,14 +1,13 @@
-// backend/src/features/auth/otp/index.ts の1行目を以下に書き換え
-import 'dotenv/config';
-import { Router, type Request, type Response } from 'express';// @ts-ignore (nexmoに型定義がない場合のエラー回避)
+import { Router, type Request, type Response } from 'express';
 import Nexmo from 'nexmo';
+import { ENV_CONFIG } from '../../../config/env.js';
 
 const router = Router();
 
 // Nexmoの設定（以前のチャットで確認したキーを使用）
 const nexmo = new Nexmo({
-  apiKey: process.env.VONAGE_API_KEY || '',
-  apiSecret: process.env.VONAGE_API_SECRET || ''
+  apiKey: ENV_CONFIG.NEXMO_API_KEY || '',
+  apiSecret: ENV_CONFIG.NEXMO_API_SECRET || ''
 });
 
 /**

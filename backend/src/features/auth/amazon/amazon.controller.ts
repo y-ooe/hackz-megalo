@@ -65,6 +65,8 @@ export const callbackHandler = async (req: Request, res: Response): Promise<void
         const userInfo = await client.userinfo(accessToken);
         req.session.userInfo = userInfo;
 
+        // console.log(req.session);
+
         try {
             const esp32Url = `http://${ENV_CONFIG.ESP32_IP}/amazon`;
             await fetch(esp32Url, { method: 'GET', signal: AbortSignal.timeout(2000) });

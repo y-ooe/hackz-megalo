@@ -5,5 +5,10 @@ declare module 'express-session' {
     nonce?: string;
     state?: string;
     userInfo?: Record<string, unknown>;
+    passport?: {
+      user?: {
+        id?: string;
+      };
+    };
   }
 }

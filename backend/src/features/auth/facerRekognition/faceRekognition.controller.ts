@@ -104,6 +104,17 @@ export const faceRecognitionHandler = async (req: Request, res: Response) => {
       });
     }
 
+    try {
+      const esp32Url = `http://${ENV_CONFIG.ESP32_IP}/face-rekognition`;
+      
+      // タイムアウトを設定しておくと、ESP32がオフラインでもリダイレクトが詰まらない
+      await axios.get(esp32Url, { timeout: 2000 }); 
+      
+      console.log('ESP32への命令送信に成功しました');
+    } catch (error) {
+      console.error('ESP32への通信に失敗しましたが、処理を続行します:', error);
+    }
+
     return res.status(200).json({
       status: 'success',
       message: 'Image uploaded to S3 successfully.',

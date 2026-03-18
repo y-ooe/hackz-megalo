@@ -13,4 +13,6 @@ export const ENV_CONFIG = {
     API_BASE_URL: process.env.API_BASE_URL ?? 'http://localhost:3000',
     GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL ?? `${process.env.API_BASE_URL ?? 'http://localhost:3000'}/auth/github/callback`,
     AMAZON_CALLBACK_URL: process.env.AMAZON_CALLBACK_URL ?? `${process.env.API_BASE_URL ?? 'http://localhost:3000'}/auth/amazon/callback`,
+    AMAZON_LOGOUT_URI: process.env.AMAZON_LOGOUT_URI ?? `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}`,
+    COGNITO_DOMAIN: process.env.COGNITO_DOMAIN ?? '',
 }

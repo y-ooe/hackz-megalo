@@ -1,112 +1,101 @@
-import { useMemo, useRef, useState } from 'react'
-import { KeyRound, LoaderCircle } from 'lucide-react'
-import { verifyOtp } from '../api'
+// frontend/src/steps/Step1OTP.jsx
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import Step1_2OTP from "./Step1_2OTP";
 
-const OTP_LENGTH = 6
+const Step1OTP = ({ onSuccess }) => {
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
+  const [requestId, setRequestId] = useState("");
 
-function Step1OTP({ onSuccess }) {
-  const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''))
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const inputRefs = useRef([])
-
-  const otpCode = useMemo(() => otpDigits.join(''), [otpDigits])
-  const canSubmit = otpCode.length === OTP_LENGTH && !otpDigits.includes('') && !isLoading
-
-  const updateDigit = (index, value) => {
-    const normalized = value.replace(/\D/g, '').slice(-1)
-    const nextDigits = [...otpDigits]
-    nextDigits[index] = normalized
-    setOtpDigits(nextDigits)
-
-    if (normalized && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  const handleKeyDown = (index, event) => {
-    if (event.key === 'Backspace' && otpDigits[index] === '' && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  const handlePaste = (event) => {
-    event.preventDefault()
-    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH)
-    if (!pasted) {
-      return
-    }
-
-    const merged = Array(OTP_LENGTH)
-      .fill('')
-      .map((_, index) => pasted[index] ?? otpDigits[index])
-
-    setOtpDigits(merged)
-    const nextFocusIndex = Math.min(pasted.length, OTP_LENGTH - 1)
-    inputRefs.current[nextFocusIndex]?.focus()
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    if (!canSubmit) {
-      return
-    }
-
-    setIsLoading(true)
-    setError('')
+  const handleSend = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      await verifyOtp(otpCode)
-      onSuccess()
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'OTP認証に失敗しました。')
+      const response = await fetch(
+        "http://localhost:3000/api/auth/otp/verify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number: phoneNumber }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.requestId) {
+        // ★ここで内部ステップを切り替え
+        setRequestId(data.requestId);
+        setStep(2);
+      } else {
+        alert(`エラー: ${data.message || "送信に失敗しました"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(
+        "ネットワークエラーが発生しました。バックエンドは起動していますか？",
+      );
     } finally {
-      setIsLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handleOtpSuccess = () => {
+    onSuccess();
+  };
 
   return (
-    <div className="space-y-6 rounded-2xl border border-cyan-400/30 bg-slate-950/65 p-6 shadow-[0_0_32px_rgba(34,211,238,0.15)] backdrop-blur">
-      <div className="flex items-center gap-3 text-cyan-300">
-        <KeyRound className="h-5 w-5" />
-        <h2 className="text-xl font-semibold">Step 1: OTP Verification</h2>
-      </div>
-
-      <p className="text-sm text-slate-300">6桁のワンタイムパスワードを入力し、認証シールドを解除してください。</p>
-
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handlePaste}>
-          {otpDigits.map((digit, index) => (
-            <input
-              key={index}
-              ref={(element) => {
-                inputRefs.current[index] = element
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(event) => updateDigit(index, event.target.value)}
-              onKeyDown={(event) => handleKeyDown(index, event)}
-              className="h-12 w-full rounded-lg border border-cyan-500/40 bg-black/50 text-center text-xl font-semibold text-cyan-200 outline-none transition focus:border-cyan-300 focus:shadow-[0_0_20px_rgba(45,212,191,0.45)]"
-              aria-label={`OTP digit ${index + 1}`}
+    <section className="rounded-2xl border border-emerald-400/30 bg-slate-950/70 p-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] backdrop-blur">
+      <AnimatePresence mode="wait">
+        {step === 1 ? (
+          <motion.form
+            key="phone"
+            initial={{ opacity: 0, x: 80 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -80 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onSubmit={handleSend}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold text-cyan-100">電話番号入力</h2>
+            <div>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="819012345678"
+                required
+                className="w-full rounded-lg border border-cyan-400/40 bg-slate-800 px-3 py-2 text-cyan-100 placeholder-slate-400 focus:border-cyan-400 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 font-semibold text-cyan-200 transition hover:bg-cyan-500/20 disabled:opacity-50"
+            >
+              {loading ? "送信中..." : "SMSを送る"}
+            </button>
+          </motion.form>
+        ) : (
+          <motion.div
+            key="otp"
+            initial={{ opacity: 0, x: 80 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -80 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+          >
+            <Step1_2OTP
+              requestId={requestId}
+              onBack={() => setStep(1)}
+              onSuccess={handleOtpSuccess}
             />
-          ))}
-        </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+};
 
-        {error && <p className="text-sm text-rose-400">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-400/50 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-          {isLoading ? '検証中...' : 'OTPを検証して次へ'}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-export default Step1OTP
+export default Step1OTP;

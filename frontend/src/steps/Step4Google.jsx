@@ -53,7 +53,7 @@ function Step4Google() {
         <ScanFace className="h-5 w-5" />
         <h2 className="text-xl font-semibold">Step 4: Google Auth</h2>
       </div>
-      <audio ref={audioRef} src="/Morning.mp3" loop preload="auto" />
+      <audio ref={audioRef} src="/kazegahuiteiru.mp3" loop preload="auto" />
 
       <p className="text-sm text-slate-300">
         バックエンドの /auth/google 経由でGoogle認証画面に遷移します。

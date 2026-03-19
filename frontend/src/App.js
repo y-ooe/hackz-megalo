@@ -21,7 +21,7 @@ const stageMeta = [
 const stepComponents = [Step1OTP, Step2GitHub, Step3Amazon, Step4Google, Step5FaceID]
 
 function App() {
-  const [stage, setStage] = useState(2)
+  const [stage, setStage] = useState(1)
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {

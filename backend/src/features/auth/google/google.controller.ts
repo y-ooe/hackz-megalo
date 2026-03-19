@@ -18,6 +18,8 @@ export const googleSuccessHandler = async(req: Request, res: Response) => {
       console.error('ESP32への通信に失敗しましたが、処理を続行します:', error);
     }
 
+    // console.log(req.session);
+
     res.redirect(`${frontendUrl}/?googleAuth=success`);
     return;
   }

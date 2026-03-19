@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Webcam from 'react-webcam'
 import { motion } from 'framer-motion'
 import { LoaderCircle, Radar } from 'lucide-react'
-import { verifyFaceScan } from '../api'
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const webcamConstraints = {
   facingMode: 'user',
@@ -11,14 +12,42 @@ const webcamConstraints = {
 function Step5FaceID({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const webcamRef = useRef(null)
 
   const handleScan = async () => {
     setIsLoading(true)
     setError('')
 
     try {
-      await verifyFaceScan()
-      onSuccess()
+      // Webカメラからスクリーンショットを取得（base64）
+      const imageSrc = webcamRef.current.getScreenshot()
+      if (!imageSrc) {
+        throw new Error('カメラの映像をキャプチャできませんでした。')
+      }
+
+      // バックエンドにPOST送信
+      const response = await fetch(`${API_BASE_URL}/auth/face/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          imageData: imageSrc,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Face ID認証に失敗しました。')
+      }
+
+      const data = await response.json()
+      if (data.status === 'success') {
+        onSuccess()
+      } else {
+        throw new Error(data.message || 'Face ID認証に失敗しました。')
+      }
     } catch (scanError) {
       setError(scanError instanceof Error ? scanError.message : 'Face ID認証に失敗しました。')
     } finally {
@@ -37,6 +66,7 @@ function Step5FaceID({ onSuccess }) {
 
       <div className="relative mx-auto aspect-video w-full overflow-hidden rounded-xl border border-cyan-400/40 bg-black">
         <Webcam
+          ref={webcamRef}
           audio={false}
           mirrored
           screenshotFormat="image/jpeg"

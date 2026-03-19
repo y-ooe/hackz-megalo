@@ -43,7 +43,7 @@ function Step3Amazon({ onSuccess }) {
         <h2 className="text-xl font-semibold">Step 3: Amazon Cognito Auth</h2>
       </div>
       {/* 3. audioタグをここに配置 */}
-      <audio ref={audioRef} src="/Morning.mp3" loop preload="auto" />
+      <audio ref={audioRef} src="/kazegahuiteiru.mp3" loop preload="auto" />
 
       <p className="text-sm text-slate-300">
         バックエンドの /auth/amazon/login 経由でCognito認証画面に遷移します。

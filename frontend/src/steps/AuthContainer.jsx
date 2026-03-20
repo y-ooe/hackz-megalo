@@ -6,7 +6,7 @@ import "../Auth.css";
 
 const AuthContainer = () => {
   // 1 = 電話番号入力, 2 = コード入力
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   const [requestId, setRequestId] = useState("");
 
   // Step1で成功したときに呼ばれる関数
